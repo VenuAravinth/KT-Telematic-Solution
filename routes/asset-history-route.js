@@ -40,7 +40,6 @@ async function getAssetHistory(req, res) {
       responseEntries.message = error.message ? error.message : error;
       responseEntries.code = 503;
     } finally {
-      console.log(purchaseData)
       res.render('asset-history.jade', { 
         purchaseData: JSON.stringify(purchaseData),
         issuseAssetData: JSON.stringify(issuseAssetData),
