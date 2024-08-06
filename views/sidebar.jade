@@ -1,0 +1,37 @@
+div.col-md-2.sidebar(style='background-color: #f0f0f0;min-height: 100vh')
+  div.sidebar-header
+    //- h3 Sidebar Header
+  ul.nav.flex-column.nav-pills.mt-3
+    li.nav-item
+      a.nav-link(href='/asset', class=(currentUrl === '/asset' || currentUrl === '/' || currentUrl === '/index' ? 'active' : ''))
+        i.fas.fa-box.mx-2
+        | Asset
+    li.nav-item
+      a.nav-link(href='/issuse-assets', class=(currentUrl === '/issuse-assets' ? 'active' : ''))
+        i.fas.fa-share.mx-2
+        | Stock View
+    li.nav-item
+      a.nav-link(href='/return-assets', class=(currentUrl === '/return-assets' ? 'active' : ''))
+        i.fas.fa-undo.mx-2
+        | Return Asset
+    li.nav-item
+      a.nav-link(href='/scrap-asset', class=(currentUrl === '/scrap-asset' ? 'active' : ''))
+        i.fas.fa-recycle.mx-2
+        | Scrap Asset
+    li.nav-item
+      a.nav-link(href='/asset-history', class=(currentUrl === '/asset-history' ? 'active' : ''))
+        i.fas.fa-clock.mx-2
+        | Asset History
+    li.nav-item
+      a.nav-link(href='/employee', class=(currentUrl === '/employee' ? 'active' : ''))
+        i.fas.fa-users.mx-2
+        | Employee
+    li.nav-item
+      a.nav-link(href='/asset-category', class=(currentUrl === '/asset-category' ? 'active' : ''))
+        i.fas.fa-tags.mx-2
+        | Asset Category
+    li.nav-item
+      a.nav-link(href='/branch', class=(currentUrl  === '/branch' ? 'active' : ''))
+        i.fas.fa-building.mx-2
+        | Branch
+    

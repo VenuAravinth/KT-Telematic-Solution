@@ -1,0 +1,123 @@
+
+
+link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.css')
+link(rel='stylesheet' href='https://cdn.datatables.net/2.1.3/css/dataTables.bootstrap4.css')
+
+script(src='https://code.jquery.com/jquery-3.7.1.js')
+script(src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js')
+script(src='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.min.js')
+script(src='https://cdn.datatables.net/2.1.3/js/dataTables.js')
+script(src='https://cdn.datatables.net/2.1.3/js/dataTables.bootstrap4.js')
+script(src='https://kit.fontawesome.com/your-font-awesome-kit-id.js')
+script(src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js')
+link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css')
+
+body
+
+div 
+  include navbar
+   
+div.container-fluid
+  div.row
+    include sidebar
+    div.col-md-10.main-content
+      h3.mt-3.mb-5 Asset History List
+     
+      ul.nav.nav-pills.nav-fill
+        li.nav-item
+          a.nav-link.active(data-toggle='pill' href='#purchase' role='tab') Purchase 
+        li.nav-item
+          a.nav-link(data-toggle='pill' href='#issuseAsset' role='tab') Issuse Asset
+        li.nav-item
+          a.nav-link(data-toggle='pill' href='#returnAsset' role='tab') Return History
+
+      .tab-content.mt-5
+        .tab-pane#purchase.active(role='tabpanel')
+          table#myPurchaseTable.table.table-striped.table-hover
+        .tab-pane#issuseAsset(role='tabpanel')
+          table#myIssuseAssetTable.table.table-striped.table-hover
+        .tab-pane#returnAsset(role='tabpanel')
+          table#myReturnAssetTable.table.table-striped.table-hover
+
+script(src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.all.min.js")
+script.
+  $(document).ready(function() {
+    console.log("purchaseData")
+    const purchaseData =!{purchaseData};
+    const issuseAssetData =!{issuseAssetData};
+    const returnAssetData =!{returnAssetData};
+
+    $('#myPurchaseTable').DataTable({
+        "data": purchaseData,
+         "columns": [
+            { "title": "Serial No.", "data": "serialNo" },
+            { "title": "Asset Name", "data": "assetName" },
+            { "title": "Purchase Date", "data": "issueDate","render": function(data, type, row) {
+            return moment(row.issueDate).format("DD-MM-YYYY");
+            } },
+            { "title": "In-Stock", "data": "isInStock","render": function(data, type, row) {
+            if (data) {
+                return `<span class="badge badge-success">In Stock</span>`;
+            } else {
+                return `<span class="badge badge-warning">Out of Stock</span>`;
+            }
+             } },
+            {
+            "title": "Actions",
+            "data": null,
+            "render": function(data, type, row, meta) {
+                return `
+                    <button class="btn btn-sm btn-primary editBtn" data-index='${meta.row}' data-value='${JSON.stringify(row)}'>Eye Icon</button>
+                   
+                `.trim();
+            }
+        }
+        ]
+    })
+
+     $('#myIssuseAssetTable').DataTable({
+        "data": issuseAssetData,
+         "columns": [
+            { "title": "Serial No.", "data": "serialNo" },
+            { "title": "Asset Name", "data": "assetName" },
+            { "title": "Employee Name", "data": "employeeName" },
+            { "title": "Issuse Date", "data": "issueDate","render": function(data, type, row) {
+            return moment(row.issueDate).format("DD-MM-YYYY");
+            } },
+            {
+            "title": "Actions",
+            "data": null,
+            "render": function(data, type, row, meta) {
+                return `
+                    <button class="btn btn-sm btn-primary editBtn" data-index='${meta.row}' data-value='${JSON.stringify(row)}'>Eye Icon</button>
+                   
+                `.trim();
+            }
+        }
+        ]
+    })
+
+      $('#myReturnAssetTable').DataTable({
+        "data": returnAssetData,
+         "columns": [
+            { "title": "Serial No.", "data": "serialNo" },
+            { "title": "Asset Name", "data": "assetName" },
+            { "title": "Employee Name", "data": "employeeName" },
+            { "title": "Return Reason", "data": "notes" },
+            { "title": "Issuse Date", "data": "issueDate","render": function(data, type, row) {
+            return moment(row.issueDate).format("DD-MM-YYYY");
+            } },
+            {
+            "title": "Actions",
+            "data": null,
+            "render": function(data, type, row, meta) {
+                return `
+                    <button class="btn btn-sm btn-primary editBtn" data-index='${meta.row}' data-value='${JSON.stringify(row)}'>Eye Icon</button>
+                   
+                `.trim();
+            }
+        }
+        ]
+    })
+
+  });

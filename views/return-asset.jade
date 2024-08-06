@@ -1,0 +1,283 @@
+
+
+link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.css')
+link(rel='stylesheet' href='https://cdn.datatables.net/2.1.3/css/dataTables.bootstrap4.css')
+
+script(src='https://code.jquery.com/jquery-3.7.1.js')
+script(src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js')
+script(src='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.min.js')
+script(src='https://cdn.datatables.net/2.1.3/js/dataTables.js')
+script(src='https://cdn.datatables.net/2.1.3/js/dataTables.bootstrap4.js')
+script(src='https://kit.fontawesome.com/your-font-awesome-kit-id.js')
+script(src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js')
+link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css')
+
+body
+
+div 
+include navbar
+
+div.container-fluid
+  div.row
+    include sidebar
+    div.col-md-10.main-content
+      h3.mt-3.mb-5 Return Asset List
+      button(type="button" class="btn btn-primary float-right mr-3 mb-2 createBtn" data-toggle="modal") Add 
+      table#myTable.table.table-striped.table-hover
+
+//------- formData---->
+div#addEmployeeModal.modal.fade(role='dialog')
+  div.modal-dialog.modal-dialog-centered
+    div.modal-content
+      div.modal-header
+        h4.modal-title #{modalTitle} Create Return Asset
+        button.close(type='button' data-dismiss='modal' aria-label='Close')
+          span(aria-hidden='true') 
+      div.modal-body
+        form
+          div.form-group
+            label(for="category") Asset :
+            select.form-control#assetOption
+          div.form-group
+            label(for="branch") Employee :
+            select.form-control#employeeOption
+          div.form-group
+            label(for='issuseDate') Return Date
+            input#issuseDate.form-control(type='date' placeholder='DD/MM/YYYY')
+          div.form-group
+            label(for="returnReason") Return Reason
+            textarea#returnReason.form-control(rows="3")
+
+
+      div.modal-footer
+        button.btn.btn-default.btn-danger(type='button' data-dismiss='modal') Close
+        button#submitForm.btn.btn-default.btn-primary.btn-save(type='button' data-dismiss='modal' style='display: block' ) Save
+        button#updateForm.btn.btn-default.btn-primary.btn-update(type='button' data-dismiss='modal' style='display: none') Update
+//------- formData---->
+
+script(src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.all.min.js")
+script.
+  $(document).ready(function() {
+    $('.btn-save').show();
+  const returnAssetData =!{returnAssetData};
+  var selectedId = ""
+  var selectedIndex = ""
+
+  $('#myTable').DataTable({
+    "dom": '<"row"<"col-sm-6"l><"col-sm-6 d-flex justify-content-end"f>>rt<"row"<"col-sm-6 mt-3"i><"col-sm-6 d-flex justify-content-end custom-pagination mt-3"p>>',
+    "initComplete": function(settings, json) {
+      var searchInput = $('.dataTables_filter input[type="search"]');
+      searchInput.addClass('form-control form-control-sm');
+      searchInput.attr('placeholder', 'Search...');
+    },
+    "pagingType": "full_numbers",
+    "data": returnAssetData,
+    "columns": [
+      { "title": "Serial No", "data": "serialNo" },
+      { "title": "Asset Name", "data": "assetName" },
+      { "title": "Employee Name", "data": "employeeName" },
+      { "title": "Reason", "data": "returnReason" },
+      {
+        "title": "Actions",
+        "data": null,
+        "render": function(data, type, row, meta) {
+          return `
+            <button class="btn btn-sm btn-primary editBtn" data-index='${meta.row}' data-value='${JSON.stringify(row)}'><i class="fas fa-pen p-1"></i></button>
+            <button class="btn btn-sm btn-danger deleteBtn" data-index='${meta.row}' data-value='${row.returnAssetsId}'><i class="fas fa-trash p-1"></i></button>
+          `.trim();
+        }
+      }
+    ]
+  });
+  });
+
+  //- Edit Data Store 
+    $(document).on('click', '.editBtn', function() {
+    var data = $(this).data('value');
+    selectedIndex = $(this).data('index');
+    selectedId = data.returnAssetsId
+    console.log(data)
+    document.getElementById('assetOption').value = data.assetId
+    document.getElementById('employeeOption').value = data.employeeId
+    document.getElementById('returnReason').value = data.returnReason
+      document.getElementById('issuseDate').value = moment(data.issuseDate).format("YYYY-MM-DD")
+      $('#addEmployeeModal').modal('show');
+      $('.btn-save').hide();
+      $('.btn-update').show();
+      $('#addEmployeeModal .modal-title').text('Edit Return Asset');
+    });
+
+      //- Create Data Store 
+    $(document).on('click', '.createBtn', function() {
+    document.getElementById('assetOption').value = 0
+      document.getElementById('employeeOption').value = 0
+    document.getElementById('returnReason').value = ""
+      document.getElementById('issuseDate').value = ""
+      $('#addEmployeeModal').modal('show');
+      $('.btn-save').show();
+      $('.btn-update').hide();
+      $('#addEmployeeModal .modal-title').text('Create Return Asset');
+    });
+
+  //Get Employee Option
+    $.ajax({
+      url: '/employee',
+      method: 'GET',
+      dataType: 'json',
+      data: {isGet : true},
+      success: function (response) {
+        let arrayData = response.data
+          $('#employeeOption').append($('<option>', { value: 0, text: 'Select Employee' }));
+      $.each(arrayData, function(index, ele) {
+        $('#employeeOption').append($('<option>', { value: ele.employeeId, text: ele.employeeName }));
+      });
+      getAsset()
+      }, error: function (XMLHttpRequest, textStatus, errorThrown) {
+        alert(errorThrown);
+      }
+      })
+
+  //Get Asset Option
+  function getAsset() {
+    $.ajax({
+      url: '/asset',
+      method: 'GET',
+      dataType: 'json',
+      data: {isGet : true},
+      success: function (response) {
+        let arrayData = response.data
+          $('#assetOption').append($('<option>', { value: 0, text: 'Select Asset' }));
+      $.each(arrayData, function(index, ele) {
+        $('#assetOption').append($('<option>', { value: ele.assetId, text: ele.assetName }));
+      });
+
+      }, error: function (XMLHttpRequest, textStatus, errorThrown) {
+        alert(errorThrown);
+      }
+      })
+  }
+
+  //- Delete Row
+    $(document).on('click', '.deleteBtn', function() {
+      var returnAssetsId = $(this).data('value');
+      selectedIndex = $(this).data('index');
+      Swal.fire({
+        title: "Are you sure?",
+        text: "Once deleted, you will not be able to recover this...!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete it!",
+        cancelButtonText: "No, keep it",
+      }).then((result)=>{
+        if (result.isConfirmed) {
+        $.ajax({
+          url: "/return-assets/"+ returnAssetsId,
+          method: 'PUT',
+          dataType: 'json',
+          data: {
+            isActive : false,
+          },
+          success: function (response) {
+            const result = response.data
+              var table = $('#myTable').DataTable();
+              table.row(selectedIndex).remove().draw();
+              clearFields()
+            Swal.fire("Deleted Successfully..!", {
+              icon: "success",
+          });
+          }, error: function (XMLHttpRequest, textStatus, errorThrown) {
+            alert(errorThrown);
+          }
+        })
+      }else {
+        Swal.fire("Your Data is safe..!", {
+          icon: "error",
+        });
+          }
+      })
+    });
+
+  //- Clear From Fields
+  function clearFields() {
+    document.getElementById('assetOption').value = ""
+    document.getElementById('employeeOption').value = ""
+    document.getElementById('returnReason').value = ""
+    document.getElementById('issuseDate').value = ""
+    $('.btn-save').show();
+    $('.btn-update').hide();
+    selectedIndex = ""
+    selectedId = ""
+  }
+    //- Create Form Action
+      $('#submitForm').click(function (event) {
+        event.preventDefault();
+        var assetId = document.getElementById('assetOption').value;
+        var employeeId = document.getElementById('employeeOption').value;
+        var returnReason = document.getElementById('returnReason').value;
+        var issuseDate = document.getElementById('issuseDate').value;
+          $.ajax({
+            url: "/return-assets",
+            method: 'POST',
+            dataType: 'json',
+            data: {
+              assetId : assetId,
+              employeeId : employeeId,
+              returnReason : returnReason,
+              issuseDate : moment(issuseDate).format("YYYY-MM-DD"),
+            },
+            success: function (response) {
+              const result = response.data
+                var table = $('#myTable').DataTable();
+              table.row.add({
+                "returnAssetsId": result[0].returnAssetsId,
+                "assetId": result[0].assetId,
+                "employeeId": result[0].employeeId,
+                "serialNo": result[0].serialNo,
+                "assetName": result[0].assetName,
+                "employeeName": result[0].employeeName,
+                "returnReason": result[0].returnReason,
+            }).draw();
+            clearFields()
+            }, error: function (XMLHttpRequest, textStatus, errorThrown) {
+              alert(errorThrown);
+            }
+        })
+      })
+      //- Update Form Action
+      $('#updateForm').click(function (event) {
+        event.preventDefault();
+        var assetId = document.getElementById('assetOption').value;
+        var employeeId = document.getElementById('employeeOption').value;
+        var returnReason = document.getElementById('returnReason').value;
+        var issuseDate = document.getElementById('issuseDate').value;
+          $.ajax({
+            url: "/return-assets/"+ selectedId,
+            method: 'PUT',
+            dataType: 'json',
+            data: {
+              assetId : assetId,
+              employeeId : employeeId,
+              returnReason : returnReason,
+              issuseDate : moment(issuseDate).format("YYYY-MM-DD"),
+            },
+            success: function (response) {
+              const result = response.data
+                var table = $('#myTable').DataTable();
+                var rowData = table.row(selectedIndex).data();
+
+              rowData.serialNo = result[0].serialNo;
+              rowData.assetName = result[0].assetName;
+              rowData.employeeName = result[0].employeeName;
+              rowData.returnReason = result[0].returnReason;
+
+              table.row(selectedIndex).data(rowData).draw();
+            clearFields()
+            }, error: function (XMLHttpRequest, textStatus, errorThrown) {
+              alert(errorThrown);
+            }
+        })
+      })
+
+
+
+

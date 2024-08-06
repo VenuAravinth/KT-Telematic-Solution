@@ -1,0 +1,19 @@
+.custom-pagination .paginate_button.previous {
+    /* add your custom CSS for the previous button here */
+    background-color: #ccc;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  
+  .custom-pagination .paginate_button.next {
+    /* add your custom CSS for the next button here */
+    background-color: #ccc;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-size: 14px;
+    cursor: pointer;
+  }

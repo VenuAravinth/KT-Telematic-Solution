@@ -1,0 +1,199 @@
+
+
+link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.css')
+link(rel='stylesheet' href='https://cdn.datatables.net/2.1.3/css/dataTables.bootstrap4.css')
+
+script(src='https://code.jquery.com/jquery-3.7.1.js')
+script(src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js')
+script(src='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.min.js')
+script(src='https://cdn.datatables.net/2.1.3/js/dataTables.js')
+script(src='https://cdn.datatables.net/2.1.3/js/dataTables.bootstrap4.js')
+script(src='https://kit.fontawesome.com/your-font-awesome-kit-id.js')
+link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css')
+
+body
+
+div 
+include navbar
+   
+div.container-fluid
+  div.row
+    include sidebar
+    div.col-md-10.main-content
+      h3.mt-3.mb-5 Event List
+      button(type="button" class="btn btn-primary float-right mr-3 mb-2" data-toggle="modal") Add 
+      table#myTable.table.table-striped.table-hover
+
+//------- formData---->
+div#addEmployeeModal.modal.fade(role='dialog')
+    div.modal-dialog.modal-dialog-centered
+        div.modal-content
+            div.modal-header
+                h4.modal-title #{modalTitle} Event List
+                button.close(type='button' data-dismiss='modal' aria-label='Close')
+                    span(aria-hidden='true') 
+            div.modal-body
+                form
+                    div.form-group
+                        label(for='eventName') Name
+                        input#eventName.form-control(type='text' placeholder='Enter Event Name')
+                    
+
+            div.modal-footer
+                button.btn.btn-default.btn-danger(type='button' data-dismiss='modal') Close
+                button#submitForm.btn.btn-default.btn-primary.btn-save(type='button' data-dismiss='modal' style='display: block' ) Save
+                button#updateForm.btn.btn-default.btn-primary.btn-update(type='button' data-dismiss='modal' style='display: none') Update
+//------- formData---->
+
+script(src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.10/dist/sweetalert2.all.min.js")
+script.
+  $(document).ready(function() {
+      $('.btn-save').show();
+    const eventData =!{eventData};
+    var selectedId = ""
+    var selectedIndex = ""
+
+    $('#myTable').DataTable({
+      "dom": '<"row"<"col-sm-6"l><"col-sm-6 d-flex justify-content-end"f>>rt<"row"<"col-sm-6 mt-3"i><"col-sm-6 d-flex justify-content-end custom-pagination mt-3"p>>',
+      "initComplete": function(settings, json) {
+        var searchInput = $('.dataTables_filter input[type="search"]');
+        searchInput.addClass('form-control form-control-sm');
+        searchInput.attr('placeholder', 'Search...');
+      },
+      "pagingType": "full_numbers",
+      "data": eventData,
+      "columns": [
+        { "title": "Event Name", "data": "eventsName" },
+        {
+          "title": "Actions",
+          "data": null,
+          "render": function(data, type, row, meta) {
+            return `
+              <button class="btn btn-sm btn-primary editBtn mx-2" data-index='${meta.row}' data-value='${JSON.stringify(row)}'><i class="fas fa-pen p-1"></i></button>
+              <button class="btn btn-sm btn-danger deleteBtn" data-index='${meta.row}' data-value='${row.eventId}'><i class="fas fa-trash p-1"></i></button>
+            `.trim();
+          }
+        }
+      ]
+    });
+  });
+    $(document).on('click', '.editBtn', function() {
+    var data = $(this).data('value');
+    selectedIndex = $(this).data('index');
+    selectedId = data.eventId
+    document.getElementById('eventName').value = data.eventsName
+      $('#addEmployeeModal').modal('show');
+      $('.btn-save').hide();
+      $('.btn-update').show();
+      $('#addEmployeeModal .modal-title').text('Edit Event');
+    });
+
+     //- Create Data Store 
+    $(document).on('click', '.createBtn', function() {
+    document.getElementById('eventName').value = ""
+      $('#addEmployeeModal').modal('show');
+      $('.btn-save').show();
+      $('.btn-update').hide();
+      $('#addEmployeeModal .modal-title').text('Create Event');
+    });
+
+    $(document).on('click', '.deleteBtn', function() {
+      var eventId = $(this).data('value');
+      selectedIndex = $(this).data('index');
+      Swal.fire({
+            title: "Are you sure?",
+            text: "Once deleted, you will not be able to recover this...!",
+            icon: "warning",
+            showCancelButton: true, // Add this to display a cancel button
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "No, keep it",
+        }).then((result)=>{
+             if (result.isConfirmed) {
+             $.ajax({
+                url: "/events/"+ eventId,
+                method: 'PUT',
+                dataType: 'json',
+                data: {
+                  isActive : false,
+                },
+                success: function (response) {
+                    const result = response.data
+                     var table = $('#myTable').DataTable();
+                   table.row(selectedIndex).remove().draw();
+                clearFields()
+                 Swal.fire("Deleted Successfully...!", {
+                                icon: "success",
+                });
+                }, error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    alert(errorThrown);
+                }
+            })
+        }else {
+                    Swal.fire("Your Data is safe..!", {
+                        icon: "error",
+                    });
+                }
+        })
+    });
+
+  function clearFields() {
+   document.getElementById('eventName').value = ""
+    $('.btn-save').show();
+    $('.btn-update').hide();
+    selectedIndex = ""
+    selectedId = ""
+  }
+  
+        $('#submitForm').click(function (event) {
+            event.preventDefault();
+            var eventName = document.getElementById('eventName').value;
+              $.ajax({
+                url: "/events",
+                method: 'POST',
+                dataType: 'json',
+                data: {
+                  eventName : eventName,
+                },
+                success: function (response) {
+                    const result = response.data
+                     var table = $('#myTable').DataTable();
+                    table.row.add({
+                     "eventsName": result[0].eventsName,
+                     "eventId": result[0].eventId,
+                }).draw();
+                clearFields()
+                }, error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    alert(errorThrown);
+                }
+            })
+        })
+  
+        $('#updateForm').click(function (event) {
+            event.preventDefault();
+            var eventName = document.getElementById('eventName').value;
+              $.ajax({
+                url: "/events/"+ selectedId,
+                method: 'PUT',
+                dataType: 'json',
+                data: {
+                  eventName : eventName,
+                },
+                success: function (response) {
+                    const result = response.data
+                     var table = $('#myTable').DataTable();
+                     var rowData = table.row(selectedIndex).data();
+
+                    rowData.eventsName = result[0].eventsName;
+
+                    table.row(selectedIndex).data(rowData).draw();
+                clearFields()
+                }, error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    alert(errorThrown);
+                }
+            })
+        })
+        
+
+
+
+  
